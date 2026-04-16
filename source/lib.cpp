@@ -1,8 +1,6 @@
 #include "lib.hpp"
 
-#include <fmt/core.h>
-
 library::library()
-    : name {fmt::format("{}", "cardcrank-cpp")}
+    : name {"cardcrank-cpp"}
 {
 }

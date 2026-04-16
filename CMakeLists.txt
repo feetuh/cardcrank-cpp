@@ -23,13 +23,13 @@ add_library(
 target_include_directories(
     cardcrank-cpp_lib ${warning_guard}
     PUBLIC
-    "\$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>"
+    "\$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
 )
 
 target_compile_features(cardcrank-cpp_lib PUBLIC cxx_std_20)
 
-find_package(fmt REQUIRED)
-target_link_libraries(cardcrank-cpp_lib PRIVATE fmt::fmt)
+# find_package(fmt REQUIRED)
+# target_link_libraries(cardcrank-cpp_lib PRIVATE fmt::fmt)
 
 # ---- Declare executable ----
 
