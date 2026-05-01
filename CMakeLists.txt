@@ -17,7 +17,7 @@ include(cmake/variables.cmake)
 
 add_library(
     cardcrank-cpp_lib OBJECT
-    source/lib.cpp
+    source/crank/lib.cpp
 )
 
 target_include_directories(
