@@ -277,7 +277,20 @@ TEST(RulesTest, IsSingleValidOnEmptyStack)
     Stack stack;
     Card card(Rank::NINE, Suit::HEARTS);
 
-    EXPECT_TRUE(Rules::is_single_valid(stack, card));
+    // 9♥ is valid as first move
+    EXPECT_TRUE(Rules::is_single_valid(stack, card, false));
+    // Other cards are not valid as first move
+    EXPECT_FALSE(Rules::is_single_valid(stack, Card(Rank::TEN, Suit::SPADES), false));
+}
+
+TEST(RulesTest, IsSingleValidOnEmptyStackAfterNineHeartsPlayed)
+{
+    Stack stack;
+    Card card(Rank::NINE, Suit::HEARTS);
+
+    // After 9♥ played, any card is valid on empty stack
+    EXPECT_TRUE(Rules::is_single_valid(stack, card, true));
+    EXPECT_TRUE(Rules::is_single_valid(stack, Card(Rank::TEN, Suit::SPADES), true));
 }
 
 TEST(RulesTest, IsSingleValidRankComparison)
@@ -285,15 +298,18 @@ TEST(RulesTest, IsSingleValidRankComparison)
     Stack stack;
     stack.place(Card(Rank::TEN, Suit::SPADES));
 
-    EXPECT_TRUE(Rules::is_single_valid(stack, Card(Rank::TEN, Suit::HEARTS)));  // Equal
-    EXPECT_TRUE(Rules::is_single_valid(stack, Card(Rank::JACK, Suit::HEARTS))); // Higher
-    EXPECT_FALSE(Rules::is_single_valid(stack, Card(Rank::NINE, Suit::HEARTS))); // Lower
+    EXPECT_TRUE(Rules::is_single_valid(stack, Card(Rank::TEN, Suit::HEARTS), true));  // Equal
+    EXPECT_TRUE(Rules::is_single_valid(stack, Card(Rank::JACK, Suit::HEARTS), true)); // Higher
+    EXPECT_FALSE(Rules::is_single_valid(stack, Card(Rank::NINE, Suit::HEARTS), true)); // Lower
 }
 
 TEST(RulesTest, IsFourOfKindValidOnEmptyStack)
 {
     Stack stack;
-    EXPECT_TRUE(Rules::is_four_of_kind_valid(stack, Rank::KING));
+    // 4-of-a-kind is NOT valid as first move (9♥ must be played first)
+    EXPECT_FALSE(Rules::is_four_of_kind_valid(stack, Rank::KING, false));
+    // But it's valid after 9♥ has been played
+    EXPECT_TRUE(Rules::is_four_of_kind_valid(stack, Rank::KING, true));
 }
 
 TEST(RulesTest, IsFourOfKindRequiresHigherRank)
@@ -301,9 +317,9 @@ TEST(RulesTest, IsFourOfKindRequiresHigherRank)
     Stack stack;
     stack.place(Card(Rank::TEN, Suit::SPADES));
 
-    EXPECT_TRUE(Rules::is_four_of_kind_valid(stack, Rank::JACK));  // Higher
-    EXPECT_FALSE(Rules::is_four_of_kind_valid(stack, Rank::TEN));  // Equal (not allowed)
-    EXPECT_FALSE(Rules::is_four_of_kind_valid(stack, Rank::NINE));  // Lower
+    EXPECT_TRUE(Rules::is_four_of_kind_valid(stack, Rank::JACK, true));  // Higher
+    EXPECT_FALSE(Rules::is_four_of_kind_valid(stack, Rank::TEN, true));  // Equal (not allowed)
+    EXPECT_FALSE(Rules::is_four_of_kind_valid(stack, Rank::NINE, true));  // Lower
 }
 
 TEST(RulesTest, IsFourOfKindDetection)

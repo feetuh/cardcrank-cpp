@@ -293,7 +293,7 @@ void GameState::grant_bonus_turn()
 
 bool GameState::is_valid_play(const Play& play) const
 {
-  return Rules::is_valid_play(stack_, play);
+  return Rules::is_valid_play(stack_, play, nine_hearts_played_);
 }
 
 void GameState::execute_play(const Play& play)
@@ -311,6 +311,11 @@ void GameState::execute_play(const Play& play)
 
   // Place cards on stack
   stack_.place(play.cards);
+
+  // Mark 9♥ as played (first move completed)
+  if (!nine_hearts_played_) {
+    nine_hearts_played_ = true;
+  }
 
   // Check for win condition
   if (hand.is_empty() && !winner_.has_value()) {

@@ -6,14 +6,14 @@
 namespace crank
 {
 
-bool Rules::is_valid_play(const Stack& stack, const Play& play)
+bool Rules::is_valid_play(const Stack& stack, const Play& play, bool nine_hearts_played)
 {
   switch (play.type) {
     case PlayType::SINGLE:
       if (play.cards.size() != 1) {
         return false;
       }
-      return is_single_valid(stack, play.cards[0]);
+      return is_single_valid(stack, play.cards[0], nine_hearts_played);
 
     case PlayType::FOUR_OF_A_KIND:
       if (play.cards.size() != 4) {
@@ -22,7 +22,7 @@ bool Rules::is_valid_play(const Stack& stack, const Play& play)
       if (!is_four_of_kind(play.cards)) {
         return false;
       }
-      return is_four_of_kind_valid(stack, play.cards[0].rank());
+      return is_four_of_kind_valid(stack, play.cards[0].rank(), nine_hearts_played);
 
     case PlayType::THREE_NINES_SPECIAL:
       if (play.cards.size() != 3) {
@@ -35,20 +35,30 @@ bool Rules::is_valid_play(const Stack& stack, const Play& play)
   }
 }
 
-bool Rules::is_single_valid(const Stack& stack, Card card)
+bool Rules::is_single_valid(const Stack& stack, Card card, bool nine_hearts_played)
 {
+  // If stack is empty and 9♥ hasn't been played yet, only 9♥ is valid
+  if (stack.is_empty() && !nine_hearts_played) {
+    return card.is_nine_of_hearts();
+  }
+
   if (stack.is_empty()) {
-    return true;  // Any card is valid on empty stack
+    return true;  // Any card is valid on empty stack after 9♥ has been played
   }
 
   Rank top_rank = get_top_rank(stack);
   return card.rank() >= top_rank;
 }
 
-bool Rules::is_four_of_kind_valid(const Stack& stack, Rank rank)
+bool Rules::is_four_of_kind_valid(const Stack& stack, Rank rank, bool nine_hearts_played)
 {
+  // 4-of-a-kind is never valid as the first play (9♥ must be played first)
+  if (stack.is_empty() && !nine_hearts_played) {
+    return false;
+  }
+
   if (stack.is_empty()) {
-    return true;  // Any 4-of-a-kind is valid on empty stack
+    return true;  // Any 4-of-a-kind is valid on empty stack after 9♥ has been played
   }
 
   Rank top_rank = get_top_rank(stack);

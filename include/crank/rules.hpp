@@ -13,9 +13,9 @@ class Rules
 {
 public:
   // Play validation
-  static bool is_valid_play(const Stack& stack, const Play& play);
-  static bool is_single_valid(const Stack& stack, Card card);
-  static bool is_four_of_kind_valid(const Stack& stack, Rank rank);
+  static bool is_valid_play(const Stack& stack, const Play& play, bool nine_hearts_played);
+  static bool is_single_valid(const Stack& stack, Card card, bool nine_hearts_played);
+  static bool is_four_of_kind_valid(const Stack& stack, Rank rank, bool nine_hearts_played);
 
   // Special cases
   static bool is_three_nines_special_valid(const Stack& stack, const Hand& hand);

@@ -119,6 +119,7 @@ public:
   Player& player(std::size_t index);
   const Player& player(std::size_t index) const;
   std::size_t current_player_index() const { return current_player_index_; }
+  bool nine_hearts_played() const { return nine_hearts_played_; }
 
 private:
   std::vector<Player> players_;
