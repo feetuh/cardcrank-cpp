@@ -36,7 +36,15 @@ auto TUIGameWrapper::play_selected_cards() -> bool
         return false;
     }
 
-    return game_library_.play_card(current_player, selected_indices);
+    const auto result = game_library_.play_card(current_player, selected_indices);
+
+    // Clear selection and reset highlight when a turn is taken
+    if (result) {
+        clear_selection();
+        highlighted_index_ = 0;
+    }
+
+    return result;
 }
 
 auto TUIGameWrapper::pass_take_three() -> bool
@@ -46,7 +54,15 @@ auto TUIGameWrapper::pass_take_three() -> bool
     }
 
     const auto current_player = get_current_player_index();
-    return game_library_.pass_take_three(current_player);
+    const auto result = game_library_.pass_take_three(current_player);
+
+    // Clear selection and reset highlight when a turn is taken
+    if (result) {
+        clear_selection();
+        highlighted_index_ = 0;
+    }
+
+    return result;
 }
 
 auto TUIGameWrapper::pass_take_all() -> bool
@@ -56,7 +72,15 @@ auto TUIGameWrapper::pass_take_all() -> bool
     }
 
     const auto current_player = get_current_player_index();
-    return game_library_.pass_take_all(current_player);
+    const auto result = game_library_.pass_take_all(current_player);
+
+    // Clear selection and reset highlight when a turn is taken
+    if (result) {
+        clear_selection();
+        highlighted_index_ = 0;
+    }
+
+    return result;
 }
 
 auto TUIGameWrapper::get_view() const -> GameView
