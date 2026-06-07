@@ -1,19 +1,15 @@
 // Copyright (c) 2026 feetuh. All Rights Reserved.
 
+#pragma once
+
 #include <cstdint>
+#include <ostream>
 
 namespace crank
 {
 
 enum class Rank : uint8_t
 {
-  TWO = 2,
-  THREE = 3,
-  FOUR = 4,
-  FIVE = 5,
-  SIX = 6,
-  SEVEN = 7,
-  EIGHT = 8,
   NINE = 9,
   TEN = 10,
   JACK = 11,
@@ -22,11 +18,39 @@ enum class Rank : uint8_t
   ACE = 14,
 };
 
+enum class Suit : uint8_t
+{
+  HEARTS,
+  DIAMONDS,
+  CLUBS,
+  SPADES,
+};
+
 class Card
 {
 public:
-  explicit Card(Rank rank);
+  Card(Rank rank, Suit suit);
 
-  Rank rank;
+  Rank rank() const { return rank_; }
+  Suit suit() const { return suit_; }
+
+  // Comparison operators (rank only)
+  bool operator==(const Card& other) const;
+  bool operator!=(const Card& other) const;
+  bool operator<(const Card& other) const;
+  bool operator<=(const Card& other) const;
+  bool operator>(const Card& other) const;
+  bool operator>=(const Card& other) const;
+
+  // Special check for 9 of Hearts
+  bool is_nine_of_hearts() const;
+
+  // Friend for output
+  friend std::ostream& operator<<(std::ostream& os, const Card& card);
+
+private:
+  Rank rank_;
+  Suit suit_;
 };
+
 }  // namespace crank
