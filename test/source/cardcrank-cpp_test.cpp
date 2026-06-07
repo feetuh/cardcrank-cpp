@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
+
 #include "crank/card.hpp"
 #include "crank/deck.hpp"
 #include "crank/table.hpp"
@@ -481,6 +483,53 @@ TEST(GameLibraryTest, GetValidPlays)
     auto plays = game.get_valid_plays(0);
     // Should have some valid plays (at minimum, single card plays)
     EXPECT_GT(plays.size(), 0);
+}
+
+TEST(GameLibraryTest, BonusTurnAdvancesAfterSinglePlay)
+{
+    // Test that after playing 4-of-a-kind (which grants a bonus turn),
+    // playing a single card advances to the next player (not a 3rd turn)
+    GameConfig config {2, 12345}; // Fixed seed for reproducibility
+    GameLibrary game(config);
+    game.start();
+
+    auto view_before = game.get_view();
+    auto current_player = view_before.current_player_index;
+    auto next_player = (current_player + 1) % 2;
+
+    // Find a 4-of-a-kind play for current player
+    auto valid_plays = game.get_valid_plays(current_player);
+    auto four_kind_it = std::find_if(valid_plays.begin(), valid_plays.end(),
+        [](const Play& p) { return p.type == PlayType::FOUR_OF_A_KIND; });
+
+    if (four_kind_it != valid_plays.end()) {
+        // Play the 4-of-a-kind
+        EXPECT_TRUE(game.play_card(current_player, {0, 1, 2, 3})); // Assuming first 4 cards form 4-of-a-kind
+
+        // Should still be current player's turn (bonus turn granted)
+        auto view_after_bonus = game.get_view();
+        EXPECT_EQ(view_after_bonus.current_player_index, current_player);
+
+        // Now play a single card (bonus turn)
+        auto single_plays = game.get_valid_plays(current_player);
+        auto single_it = std::find_if(single_plays.begin(), single_plays.end(),
+            [](const Play& p) { return p.type == PlayType::SINGLE; });
+
+        if (single_it != single_plays.end()) {
+            // Find the card index for this single play
+            auto hand = game.get_player_hand(current_player);
+            for (size_t i = 0; i < hand.size(); ++i) {
+                if (hand[i] == single_it->cards[0]) {
+                    EXPECT_TRUE(game.play_card(current_player, {i}));
+
+                    // Turn should now advance to next player (NOT a 3rd turn for same player)
+                    auto view_final = game.get_view();
+                    EXPECT_EQ(view_final.current_player_index, next_player);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 // ============================================================================

@@ -277,13 +277,10 @@ Player& GameState::next_player()
 
 void GameState::advance_turn()
 {
-  if (bonus_turn_active_) {
-    // Bonus turn ends, don't advance
-    bonus_turn_active_ = false;
-  } else {
-    // Normal turn, advance clockwise
-    current_player_index_ = (current_player_index_ + 1) % players_.size();
-  }
+  // Always advance to next player
+  current_player_index_ = (current_player_index_ + 1) % players_.size();
+  // Bonus turn ends after one play
+  bonus_turn_active_ = false;
 }
 
 void GameState::grant_bonus_turn()
