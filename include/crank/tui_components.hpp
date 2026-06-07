@@ -44,6 +44,7 @@ private:
   // Card rendering helpers
   static auto render_card(const Card& card, bool selected) -> ftxui::Element;
   static auto get_card_symbol(Suit suit) -> std::string;
+  static auto get_rank_display(Rank rank) -> std::string;
 };
 
 }  // namespace crank

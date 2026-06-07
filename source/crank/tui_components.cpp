@@ -249,8 +249,7 @@ auto TUIComponents::render_valid_moves(const std::vector<Play>& valid_plays)
 
     // For single cards, show rank
     if (valid_plays[i].cards.size() == 1) {
-      valid_text +=
-          std::to_string(static_cast<int>(valid_plays[i].cards.at(0).rank()));
+      valid_text += get_rank_display(valid_plays[i].cards.at(0).rank());
     } else {
       // For multiple cards, show count
       valid_text += std::to_string(valid_plays[i].cards.size()) + " cards";
@@ -277,7 +276,7 @@ auto TUIComponents::render_controls() -> ftxui::Element
 auto TUIComponents::render_card(const Card& card, bool selected)
     -> ftxui::Element
 {
-  std::string card_text = "[" + std::to_string(static_cast<int>(card.rank()))
+  std::string card_text = "[" + get_rank_display(card.rank())
       + TUIComponents::get_card_symbol(card.suit()) + "]";
 
   if (selected) {
@@ -298,6 +297,26 @@ auto TUIComponents::get_card_symbol(Suit suit) -> std::string
       return "♣";
     case Suit::SPADES:
       return "♠";
+    default:
+      return "?";
+  }
+}
+
+auto TUIComponents::get_rank_display(Rank rank) -> std::string
+{
+  switch (rank) {
+    case Rank::NINE:
+      return "9";
+    case Rank::TEN:
+      return "T";
+    case Rank::JACK:
+      return "J";
+    case Rank::QUEEN:
+      return "Q";
+    case Rank::KING:
+      return "K";
+    case Rank::ACE:
+      return "A";
     default:
       return "?";
   }
