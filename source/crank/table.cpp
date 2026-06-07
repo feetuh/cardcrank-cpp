@@ -12,14 +12,28 @@ namespace crank
 // Hand Implementation
 // ============================================================================
 
+namespace
+{
+  // Comparator for sorting cards: by rank ascending, then by suit
+  auto card_compare(const Card& lhs, const Card& rhs) -> bool
+  {
+    if (lhs.rank() != rhs.rank()) {
+      return lhs.rank() < rhs.rank();
+    }
+    return lhs.suit() < rhs.suit();
+  }
+}  // namespace
+
 void Hand::add(Card card)
 {
   cards_.push_back(card);
+  std::sort(cards_.begin(), cards_.end(), card_compare);
 }
 
 void Hand::add(std::vector<Card> cards)
 {
   cards_.insert(cards_.end(), cards.begin(), cards.end());
+  std::sort(cards_.begin(), cards_.end(), card_compare);
 }
 
 bool Hand::remove(Card card)
