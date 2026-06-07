@@ -332,6 +332,7 @@ void GameState::execute_pass_take_three()
 
   // Check if 9♥ was taken and needs to be placed back
   if (Rules::must_place_nine_hearts_back(taken)) {
+    stack_.place(Card(Rank::NINE, Suit::HEARTS));
     stack_.ensure_nine_hearts_at_base();
     taken.erase(std::remove(taken.begin(), taken.end(), Card(Rank::NINE, Suit::HEARTS)), taken.end());
   }
