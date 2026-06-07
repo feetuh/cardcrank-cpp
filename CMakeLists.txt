@@ -16,6 +16,8 @@ project(
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
+add_compile_options(-Wno-float-equal)
+
 # ---- Declare library ----
 
 add_library(
@@ -25,6 +27,8 @@ add_library(
     source/crank/deck.cpp
     source/crank/table.cpp
     source/crank/rules.cpp
+    source/crank/tui_wrapper.cpp
+    source/crank/tui_components.cpp
 )
 
 target_include_directories(
@@ -34,6 +38,14 @@ target_include_directories(
 )
 
 target_compile_features(cardcrank-cpp_lib PUBLIC cxx_std_20)
+
+# FTXUI is needed by TUI components
+target_link_libraries(cardcrank-cpp_lib
+    PUBLIC
+        ftxui::component
+        ftxui::dom
+        ftxui::screen
+)
 
 # find_package(fmt REQUIRED)
 # target_link_libraries(cardcrank-cpp_lib PRIVATE fmt::fmt)
@@ -48,6 +60,46 @@ set_property(TARGET cardcrank-cpp_exe PROPERTY OUTPUT_NAME cardcrank-cpp)
 target_compile_features(cardcrank-cpp_exe PRIVATE cxx_std_20)
 
 target_link_libraries(cardcrank-cpp_exe PRIVATE cardcrank-cpp_lib)
+
+# ---- TUI Executable ----
+
+# Find FTXUI package
+include(FetchContent)
+FetchContent_Declare(ftxui
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/ftxui
+  GIT_TAG v6.1.9
+)
+FetchContent_MakeAvailable(ftxui)
+
+# target_link_libraries(your_target PRIVATE
+    # Use the umbrella target (recommended)
+    # ftxui::ftxui
+
+    # Or chose a submodule
+    # ftxui::component
+    # ftxui::dom
+    # ftxui::screen
+    # )
+    #
+    # find_package(ftxui REQUIRED)
+
+add_executable(cardcrank-tui_exe source/tui_main.cpp)
+add_executable(cardcrank::tui ALIAS cardcrank-tui_exe)
+
+set_property(TARGET cardcrank-tui_exe PROPERTY OUTPUT_NAME cardcrank-tui)
+
+target_compile_features(cardcrank-tui_exe PRIVATE cxx_std_20)
+target_link_libraries(cardcrank-tui_exe
+    PRIVATE
+        cardcrank-cpp_lib
+    # iftxui::ftxui
+    PRIVATE ftxui::component
+    PRIVATE ftxui::dom
+    PRIVATE ftxui::screen
+)
+
+# Ignore float-equal warning
+# target_compile_options(cardcrank-tui_exe PRIVATE -Wno-float-equal)
 
 # ---- Tests ----
 
