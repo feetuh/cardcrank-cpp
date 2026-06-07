@@ -1,7 +1,9 @@
 {
   "name": "cardcrank-cpp",
   "version-semver": "0.1.0",
-  "dependencies": [],
+  "dependencies": [
+    "gtest"
+  ],
   "features": {
     "test": {
       "description": "Dependencies for testing",
