@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -260,23 +261,45 @@ auto TUIComponents::render_valid_moves(const std::vector<Play>& valid_plays)
     return ftxui::text("Valid moves: None");
   }
 
+  // Group plays by rank
+  struct RankInfo
+  {
+    std::vector<Suit> single_suits;  // Suits valid as single plays
+    bool has_four_of_a_kind = false;
+  };
+  std::map<Rank, RankInfo> rank_map;
+
+  for (const auto& play : valid_plays) {
+    if (play.type == PlayType::SINGLE && play.cards.size() == 1) {
+      rank_map[play.cards[0].rank()].single_suits.push_back(play.cards[0].suit());
+    } else if (play.type == PlayType::FOUR_OF_A_KIND) {
+      rank_map[play.cards[0].rank()].has_four_of_a_kind = true;
+    }
+  }
+
   std::vector<ftxui::Element> move_elements;
   move_elements.push_back(ftxui::text("Valid moves: "));
 
-  for (size_t i = 0; i < valid_plays.size(); ++i) {
-    if (i > 0) {
+  bool first = true;
+  for (const auto& [rank, info] : rank_map) {
+    if (!first) {
       move_elements.push_back(ftxui::text(", "));
     }
+    first = false;
 
-    const auto& cards = valid_plays[i].cards;
-    if (cards.size() == 1) {
-      // Single card - just render it (always valid since it's in valid_plays)
-      move_elements.push_back(render_card(cards[0], false, true));
-    } else {
-      // Multiple cards - show count with card (always valid since it's in valid_plays)
-      std::string count_text = std::to_string(cards.size()) + "x";
-      move_elements.push_back(ftxui::text(count_text));
-      move_elements.push_back(render_card(cards[0], false, true));
+    std::string rank_str = get_rank_display(rank);
+
+    if (info.has_four_of_a_kind) {
+      // Four of a kind: show as "rank[4]"
+      move_elements.push_back(ftxui::text(rank_str + "[4]"));
+    } else if (info.single_suits.size() > 1) {
+      // Multiple suits: show as "rank[*]"
+      move_elements.push_back(ftxui::text(rank_str + "[*]"));
+    } else if (info.single_suits.size() == 1) {
+      // Single suit: show as "rank[suit]"
+      move_elements.push_back(ftxui::text(rank_str + "["
+                                               + get_card_symbol(info.single_suits[0])
+                                               + "]"));
     }
   }
 
