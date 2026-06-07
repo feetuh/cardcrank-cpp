@@ -1,9 +1,7 @@
 #pragma once
 // Copyright (c) 2026 feetuh. All Rights Reserved.
 
-#include <atomic>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include <ftxui/component/component.hpp>
@@ -45,12 +43,6 @@ private:
   // Card rendering helpers
   static auto render_card(const Card& card, bool selected) -> ftxui::Element;
   static auto get_card_symbol(Suit suit) -> std::string;
-
-  // Event handling
-  static void handle_events(ftxui::ScreenInteractive& screen,
-                            TUIGameWrapper& game,
-                            std::atomic<bool>& running,
-                            std::vector<size_t>& selected_indices);
 };
 
 }  // namespace crank

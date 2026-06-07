@@ -1,11 +1,9 @@
 // Copyright (c) 2026 feetuh. All Rights Reserved.
 
 #include <algorithm>
-#include <atomic>
-#include <chrono>
 #include <iostream>
 #include <string>
-#include <thread>
+#include <vector>
 
 #include "crank/tui_components.hpp"
 
@@ -18,27 +16,89 @@ void TUIComponents::run_game_loop(TUIGameWrapper& game)
 {
   auto screen = ftxui::ScreenInteractive::Fullscreen();
 
-  // State for the game loop
-  std::atomic<bool> running = true;
-
   // Start the game
   game.start();
 
-  // Event handler function
-  auto on_event = [&](ftxui::Event event)
-  {
-    if (event == ftxui::Event::Character('q')) {
-      running = false;
-      return true;
-    }
-    return false;
-  };
-
-  // Create the main renderer
+  // Create the main renderer with event handling
   auto renderer = ftxui::Renderer([&] { return render_game_screen(game); });
 
+  // Add event handling
+  auto component = ftxui::CatchEvent(renderer, [&](ftxui::Event event) {
+    // Handle quit
+    if (event == ftxui::Event::Character('q') || event == ftxui::Event::Escape) {
+      screen.ExitLoopClosure()();
+      return true;
+    }
+
+    // Check if game is over
+    if (game.is_game_over()) {
+      return false;  // Only allow quit when game is over
+    }
+
+    const auto current_hand = game.get_current_hand();
+
+    // Handle card selection with number keys (1-9)
+    if (event.is_character()) {
+      char key_char = event.character()[0];
+      if (key_char >= '1' && key_char <= '9') {
+        size_t card_index = static_cast<size_t>(key_char - '1');
+        if (card_index < current_hand.size()) {
+          game.toggle_card_selection(card_index);
+          return true;
+        }
+      }
+    }
+
+    // Handle space bar for next card selection (cycle through)
+    if (event == ftxui::Event::Character(' ')) {
+      const auto selected = game.get_selected_indices();
+      size_t next_index = 0;
+      if (!selected.empty()) {
+        next_index = (selected.back() + 1) % current_hand.size();
+      }
+      game.toggle_card_selection(next_index);
+      return true;
+    }
+
+    // Handle Enter to play selected cards
+    if (event == ftxui::Event::Return) {
+      game.play_selected_cards();
+      return true;
+    }
+
+    // Handle 'p' for pass take three
+    if (event == ftxui::Event::Character('p') || event == ftxui::Event::Character('P')) {
+      game.pass_take_three();
+      return true;
+    }
+
+    // Handle 'o' for pass take all
+    if (event == ftxui::Event::Character('o') || event == ftxui::Event::Character('O')) {
+      game.pass_take_all();
+      return true;
+    }
+
+    // Handle 'c' to clear selection
+    if (event == ftxui::Event::Character('c') || event == ftxui::Event::Character('C')) {
+      game.clear_selection();
+      return true;
+    }
+
+    // Handle 'a' to select all cards
+    if (event == ftxui::Event::Character('a') || event == ftxui::Event::Character('A')) {
+      // Clear current selection first, then select all
+      game.clear_selection();
+      for (size_t i = 0; i < current_hand.size(); ++i) {
+        game.toggle_card_selection(i);
+      }
+      return true;
+    }
+
+    return false;  // Event not handled
+  });
+
   // Run the event loop
-  screen.Loop(renderer);
+  screen.Loop(component);
 
   // Clean up
   screen.Exit();
@@ -51,7 +111,31 @@ auto TUIComponents::render_game_screen(const TUIGameWrapper& game)
   auto hand = game.get_current_hand();
   auto stack = game.get_stack();
   auto valid_plays = game.get_valid_plays();
-  std::vector<size_t> selected_indices;
+  auto selected_indices = game.get_selected_indices();
+
+  // Check if game is over
+  if (game.is_game_over()) {
+    auto winner = game.get_winner();
+    std::string winner_text = winner.has_value()
+        ? "Game Over! Winner: " + winner.value()
+        : "Game Over! No winner (draw)";
+
+    auto game_over_content = ftxui::vbox({
+        ftxui::text("Card Crank - Terminal Game")
+            | ftxui::bold | ftxui::center,
+        ftxui::separator(),
+        ftxui::text(winner_text)
+            | ftxui::bold | ftxui::center | ftxui::color(ftxui::Color::Green),
+        ftxui::separator(),
+        render_player_info(view),
+        ftxui::separator(),
+        render_stack_display(stack),
+        ftxui::separator(),
+        ftxui::text("Press Q or ESC to quit") | ftxui::center,
+    });
+
+    return game_over_content | ftxui::border;
+  }
 
   auto main_content = ftxui::vbox({
                           ftxui::text("Card Crank - Terminal Game")
@@ -127,7 +211,16 @@ auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
   for (size_t i = 0; i < hand.size(); ++i) {
     bool isSelected =
         std::find(selected.begin(), selected.end(), i) != selected.end();
-    card_elements.push_back(render_card(hand[i], isSelected));
+    auto card_elem = render_card(hand[i], isSelected);
+
+    // Add index number above card (1-9, then 0 for 10+)
+    std::string index_str = (i + 1 <= 9) ? std::to_string(i + 1) : "0";
+    auto indexed_card = ftxui::vbox({
+        ftxui::text(index_str) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3) | ftxui::center,
+        card_elem
+    });
+
+    card_elements.push_back(indexed_card);
 
     // Add spacing between cards
     if (i < hand.size() - 1) {
@@ -167,8 +260,15 @@ auto TUIComponents::render_valid_moves(const std::vector<Play>& valid_plays)
 
 auto TUIComponents::render_controls() -> ftxui::Element
 {
-  return ftxui::text(
-      "Controls: Space=Select, Enter=Play, P=Pass3, O=PassAll, Q=Quit");
+  return ftxui::vbox({
+      ftxui::text("1-9/Space=Select Card"),
+      ftxui::text("Enter=Play Selected"),
+      ftxui::text("P=Pass Take Three"),
+      ftxui::text("O=Pass Take All"),
+      ftxui::text("A=Select All"),
+      ftxui::text("C=Clear Selection"),
+      ftxui::text("Q/ESC=Quit"),
+  });
 }
 
 auto TUIComponents::render_card(const Card& card, bool selected)
@@ -198,15 +298,6 @@ auto TUIComponents::get_card_symbol(Suit suit) -> std::string
     default:
       return "?";
   }
-}
-
-void TUIComponents::handle_events(ftxui::ScreenInteractive& screen,
-                                  TUIGameWrapper& game,
-                                  std::atomic<bool>& running,
-                                  std::vector<size_t>& selected_indices)
-{
-  // This is a placeholder for event handling
-  // In a full implementation, this would handle keyboard input
 }
 
 }  // namespace crank
