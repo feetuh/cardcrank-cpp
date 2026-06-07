@@ -52,7 +52,7 @@ target_link_libraries(cardcrank-cpp_exe PRIVATE cardcrank-cpp_lib)
 # ---- Tests ----
 
 option(BUILD_TESTING "Build the testing tree." ON)
-if(BUILD_TESTING)
+if(BUILD_TESTING AND NOT cardcrank-cpp_DEVELOPER_MODE)
   add_subdirectory(test)
 endif()
 
