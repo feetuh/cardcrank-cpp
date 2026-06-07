@@ -18,6 +18,10 @@ include(cmake/variables.cmake)
 add_library(
     cardcrank-cpp_lib OBJECT
     source/crank/lib.cpp
+    source/crank/card.cpp
+    source/crank/deck.cpp
+    source/crank/table.cpp
+    source/crank/rules.cpp
 )
 
 target_include_directories(
@@ -41,6 +45,13 @@ set_property(TARGET cardcrank-cpp_exe PROPERTY OUTPUT_NAME cardcrank-cpp)
 target_compile_features(cardcrank-cpp_exe PRIVATE cxx_std_20)
 
 target_link_libraries(cardcrank-cpp_exe PRIVATE cardcrank-cpp_lib)
+
+# ---- Tests ----
+
+option(BUILD_TESTING "Build the testing tree." ON)
+if(BUILD_TESTING)
+  add_subdirectory(test)
+endif()
 
 # ---- Install rules ----
 
