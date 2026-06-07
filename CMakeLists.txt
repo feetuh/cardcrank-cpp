@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Export compile commands for IDE/LSP support
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 include(cmake/prelude.cmake)
 
 project(

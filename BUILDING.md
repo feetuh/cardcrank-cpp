@@ -55,6 +55,10 @@ variable to provide them to CMake during configuration.
 CMake supports building on Apple Silicon properly since 3.20.1. Make sure you
 have the [latest version][1] installed.
 
+## IDE Support
+
+CMake automatically generates a `compile_commands.json` file (symlinked to the project root) that provides include paths and compile flags to LSP servers in nvim, VS Code, and other editors. No additional configuration is typically needed.
+
 ## Testing
 
 To build and run the tests, enable testing during configuration:
