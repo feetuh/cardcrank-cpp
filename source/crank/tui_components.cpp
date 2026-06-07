@@ -234,12 +234,12 @@ auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
     }
 
     // Add index number above card (show highlighted card with >)
-    std::string index_str = (i + 1 <= 9) ? std::to_string(i + 1) : "0";
+    std::string index_str = std::to_string(i + 1);
     if (isHighlighted) {
       index_str = ">" + index_str + "<";
     }
     auto indexed_card = ftxui::vbox({
-        ftxui::text(index_str) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3) | ftxui::center,
+        ftxui::text(index_str) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 4) | ftxui::center,
         card_elem
     });
 
