@@ -202,8 +202,16 @@ auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
     return ftxui::text("Hand: empty");
   }
 
+  // Custom comparator that compares both rank and suit
+  auto card_comparator = [](const Card& a, const Card& b) {
+    if (a.rank() != b.rank()) {
+      return a.rank() < b.rank();
+    }
+    return a.suit() < b.suit();
+  };
+
   // Build a set of cards that are valid moves (single card plays only for hand display)
-  std::set<Card> valid_single_cards;
+  std::set<Card, decltype(card_comparator)> valid_single_cards(card_comparator);
   for (const auto& play : valid_plays) {
     if (play.cards.size() == 1) {
       valid_single_cards.insert(play.cards[0]);
