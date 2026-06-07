@@ -182,14 +182,9 @@ auto TUIComponents::render_stack_display(const std::vector<Card>& stack)
 
   std::vector<ftxui::Element> card_elements;
 
-  // Add the base card (always 9♥)
-  card_elements.push_back(render_card(Card {Rank::NINE, Suit::HEARTS}, false));
-
-  // Add other cards if any
+  // Render all cards in the stack (including the base 9♥)
   for (const auto& card : stack) {
-    if (!(card.rank() == Rank('9') && card.suit() == Suit('h'))) {
-      card_elements.push_back(render_card(card, false));
-    }
+    card_elements.push_back(render_card(card, false));
   }
 
   return ftxui::hbox(card_elements);
