@@ -240,23 +240,27 @@ auto TUIComponents::render_valid_moves(const std::vector<Play>& valid_plays)
     return ftxui::text("Valid moves: None");
   }
 
-  std::string valid_text = "Valid moves: ";
+  std::vector<ftxui::Element> move_elements;
+  move_elements.push_back(ftxui::text("Valid moves: "));
 
   for (size_t i = 0; i < valid_plays.size(); ++i) {
     if (i > 0) {
-      valid_text += ", ";
+      move_elements.push_back(ftxui::text(", "));
     }
 
-    // For single cards, show rank
-    if (valid_plays[i].cards.size() == 1) {
-      valid_text += get_rank_display(valid_plays[i].cards.at(0).rank());
+    const auto& cards = valid_plays[i].cards;
+    if (cards.size() == 1) {
+      // Single card - just render it
+      move_elements.push_back(render_card(cards[0], false));
     } else {
-      // For multiple cards, show count
-      valid_text += std::to_string(valid_plays[i].cards.size()) + " cards";
+      // Multiple cards - show count with card
+      std::string count_text = std::to_string(cards.size()) + "x";
+      move_elements.push_back(ftxui::text(count_text));
+      move_elements.push_back(render_card(cards[0], false));
     }
   }
 
-  return ftxui::text(valid_text);
+  return ftxui::hbox(move_elements);
 }
 
 auto TUIComponents::render_controls() -> ftxui::Element
