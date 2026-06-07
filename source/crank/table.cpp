@@ -347,12 +347,12 @@ void GameState::execute_pass_take_all()
   // Take all cards from stack
   auto taken = stack_.take_all();
 
-  // 9♥ must be placed back as base
-  stack_.place(Card(Rank::NINE, Suit::HEARTS));
-  stack_.ensure_nine_hearts_at_base();
-
-  // Remove 9♥ from taken cards
-  taken.erase(std::remove(taken.begin(), taken.end(), Card(Rank::NINE, Suit::HEARTS)), taken.end());
+  // Check if 9♥ was taken and needs to be placed back
+  if (Rules::must_place_nine_hearts_back(taken)) {
+    stack_.place(Card(Rank::NINE, Suit::HEARTS));
+    stack_.ensure_nine_hearts_at_base();
+    taken.erase(std::remove(taken.begin(), taken.end(), Card(Rank::NINE, Suit::HEARTS)), taken.end());
+  }
 
   // Add remaining cards to current player's hand
   current_player().hand().add(taken);
