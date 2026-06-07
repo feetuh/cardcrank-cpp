@@ -1,15 +1,17 @@
 #pragma once
 // Copyright (c) 2026 feetuh. All Rights Reserved.
 
-#include "crank/lib.hpp"
-#include "crank/tui_wrapper.hpp"
+#include <atomic>
+#include <string>
+#include <thread>
+#include <vector>
+
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
-#include <vector>
-#include <string>
-#include <thread>
-#include <atomic>
+
+#include "crank/lib.hpp"
+#include "crank/tui_wrapper.hpp"
 
 namespace crank
 {
@@ -22,27 +24,33 @@ namespace crank
 class TUIComponents
 {
 public:
-    TUIComponents() = delete;
+  TUIComponents() = delete;
 
-    // Main game loop
-    static void run_game_loop(TUIGameWrapper& game);
+  // Main game loop
+  static void run_game_loop(TUIGameWrapper& game);
 
 private:
-    // UI Helpers
-    static auto render_game_screen(const TUIGameWrapper& game) -> ftxui::Element;
-    static auto render_player_info(const GameView& view) -> ftxui::Element;
-    static auto render_stack_display(const std::vector<Card>& stack) -> ftxui::Element;
-    static auto render_hand_display(const std::vector<Card>& hand, const std::vector<size_t>& selected) -> ftxui::Element;
-    static auto render_valid_moves(const std::vector<Play>& valid_plays) -> ftxui::Element;
-    static auto render_controls() -> ftxui::Element;
+  // UI Helpers
+  static auto render_game_screen(const TUIGameWrapper& game) -> ftxui::Element;
+  static auto render_player_info(const GameView& view) -> ftxui::Element;
+  static auto render_stack_display(const std::vector<Card>& stack)
+      -> ftxui::Element;
+  static auto render_hand_display(const std::vector<Card>& hand,
+                                  const std::vector<size_t>& selected)
+      -> ftxui::Element;
+  static auto render_valid_moves(const std::vector<Play>& valid_plays)
+      -> ftxui::Element;
+  static auto render_controls() -> ftxui::Element;
 
-    // Card rendering helpers
-    static auto render_card(const Card& card, bool selected) -> ftxui::Element;
-    static auto get_card_symbol(char suit) -> std::string;
+  // Card rendering helpers
+  static auto render_card(const Card& card, bool selected) -> ftxui::Element;
+  static auto get_card_symbol(Suit suit) -> std::string;
 
-    // Event handling
-    static void handle_events(ftxui::ScreenInteractive& screen, TUIGameWrapper& game,
-                           std::atomic<bool>& running, std::vector<size_t>& selected_indices);
+  // Event handling
+  static void handle_events(ftxui::ScreenInteractive& screen,
+                            TUIGameWrapper& game,
+                            std::atomic<bool>& running,
+                            std::vector<size_t>& selected_indices);
 };
 
 }  // namespace crank
