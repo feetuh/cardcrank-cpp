@@ -422,9 +422,11 @@ TEST(GameLibraryTest, OnlyCurrentPlayerCanPlay)
     auto current = game.get_view().current_player_index;
     auto other = (current + 1) % 2;
 
-    // Only current player can play
-    EXPECT_TRUE(game.play_card(current, {0}));
+    // Non-current player cannot play
     EXPECT_FALSE(game.play_card(other, {0}));
+
+    // Current player can play
+    EXPECT_TRUE(game.play_card(current, {0}));
 }
 
 TEST(GameLibraryTest, InvalidPlayReturnsFalse)
