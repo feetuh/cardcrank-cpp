@@ -34,7 +34,8 @@ private:
   static auto render_stack_display(const std::vector<Card>& stack)
       -> ftxui::Element;
   static auto render_hand_display(const std::vector<Card>& hand,
-                                  const std::vector<size_t>& selected)
+                                  const std::vector<size_t>& selected,
+                                  size_t highlighted_index)
       -> ftxui::Element;
   static auto render_valid_moves(const std::vector<Play>& valid_plays)
       -> ftxui::Element;

@@ -37,27 +37,24 @@ void TUIComponents::run_game_loop(TUIGameWrapper& game)
 
     const auto current_hand = game.get_current_hand();
 
-    // Handle card selection with number keys (1-9)
-    if (event.is_character()) {
-      char key_char = event.character()[0];
-      if (key_char >= '1' && key_char <= '9') {
-        size_t card_index = static_cast<size_t>(key_char - '1');
-        if (card_index < current_hand.size()) {
-          game.toggle_card_selection(card_index);
-          return true;
-        }
-      }
+    // Handle arrow keys for navigation
+    if (event == ftxui::Event::ArrowRight) {
+      game.move_highlight(1);
+      return true;
     }
 
-    // Handle space bar for next card selection (cycle through)
-    if (event == ftxui::Event::Character(' ')) {
-      const auto selected = game.get_selected_indices();
-      size_t next_index = 0;
-      if (!selected.empty()) {
-        next_index = (selected.back() + 1) % current_hand.size();
-      }
-      game.toggle_card_selection(next_index);
+    if (event == ftxui::Event::ArrowLeft) {
+      game.move_highlight(-1);
       return true;
+    }
+
+    // Handle space bar to toggle selection of highlighted card
+    if (event == ftxui::Event::Character(' ')) {
+      const auto highlighted = game.get_highlighted_index();
+      if (highlighted < current_hand.size()) {
+        game.toggle_card_selection(highlighted);
+        return true;
+      }
     }
 
     // Handle Enter to play selected cards
@@ -145,7 +142,7 @@ auto TUIComponents::render_game_screen(const TUIGameWrapper& game)
                           ftxui::separator(),
                           render_stack_display(stack),
                           ftxui::separator(),
-                          render_hand_display(hand, selected_indices),
+                          render_hand_display(hand, selected_indices, game.get_highlighted_index()),
                           ftxui::separator(),
                           render_valid_moves(valid_plays),
                           ftxui::separator(),
@@ -199,7 +196,8 @@ auto TUIComponents::render_stack_display(const std::vector<Card>& stack)
 }
 
 auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
-                                        const std::vector<size_t>& selected)
+                                        const std::vector<size_t>& selected,
+                                        size_t highlighted_index)
     -> ftxui::Element
 {
   if (hand.empty()) {
@@ -211,10 +209,19 @@ auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
   for (size_t i = 0; i < hand.size(); ++i) {
     bool isSelected =
         std::find(selected.begin(), selected.end(), i) != selected.end();
+    bool isHighlighted = (i == highlighted_index);
     auto card_elem = render_card(hand[i], isSelected);
 
-    // Add index number above card (1-9, then 0 for 10+)
+    // Add visual indicator for highlighted card
+    if (isHighlighted) {
+      card_elem = card_elem | ftxui::underlined | ftxui::bold;
+    }
+
+    // Add index number above card (show highlighted card with >)
     std::string index_str = (i + 1 <= 9) ? std::to_string(i + 1) : "0";
+    if (isHighlighted) {
+      index_str = ">" + index_str + "<";
+    }
     auto indexed_card = ftxui::vbox({
         ftxui::text(index_str) | ftxui::size(ftxui::WIDTH, ftxui::EQUAL, 3) | ftxui::center,
         card_elem
@@ -261,7 +268,8 @@ auto TUIComponents::render_valid_moves(const std::vector<Play>& valid_plays)
 auto TUIComponents::render_controls() -> ftxui::Element
 {
   return ftxui::vbox({
-      ftxui::text("1-9/Space=Select Card"),
+      ftxui::text("←/→=Move Highlight"),
+      ftxui::text("Space=Toggle Selection"),
       ftxui::text("Enter=Play Selected"),
       ftxui::text("P=Pass Take Three"),
       ftxui::text("O=Pass Take All"),

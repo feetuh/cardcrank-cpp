@@ -11,7 +11,8 @@ namespace crank
 TUIGameWrapper::TUIGameWrapper(GameConfig config)
     : game_library_(config),
       rng_(config.seed.value_or(std::random_device{}())),
-      game_started_(false)
+      game_started_(false),
+      highlighted_index_(0)
 {
 }
 
@@ -168,11 +169,60 @@ void TUIGameWrapper::update_selection_size()
     if (card_selection_.size() != new_size) {
         card_selection_.resize(new_size, false);
     }
+
+    // Ensure highlighted index stays within bounds
+    if (!hand.empty() && highlighted_index_ >= new_size) {
+        highlighted_index_ = 0;
+    }
 }
 
 void TUIGameWrapper::ensure_current_player_hand()
 {
     update_selection_size();
+}
+
+auto TUIGameWrapper::move_highlight(int offset) -> void
+{
+    if (!game_started_) {
+        return;
+    }
+
+    const auto hand = get_current_hand();
+    if (hand.empty()) {
+        return;
+    }
+
+    // Calculate new highlighted index with wraparound
+    int new_index = static_cast<int>(highlighted_index_) + offset;
+    const auto hand_size = static_cast<int>(hand.size());
+
+    // Handle wraparound for positive offset
+    if (new_index >= hand_size) {
+        new_index = new_index % hand_size;
+    }
+    // Handle wraparound for negative offset
+    else if (new_index < 0) {
+        new_index = hand_size + (new_index % hand_size);
+    }
+
+    highlighted_index_ = static_cast<size_t>(new_index);
+}
+
+auto TUIGameWrapper::get_highlighted_index() const -> size_t
+{
+    return highlighted_index_;
+}
+
+auto TUIGameWrapper::set_highlighted_index(size_t index) -> void
+{
+    if (!game_started_) {
+        return;
+    }
+
+    const auto hand = get_current_hand();
+    if (!hand.empty() && index < hand.size()) {
+        highlighted_index_ = index;
+    }
 }
 
 }  // namespace crank

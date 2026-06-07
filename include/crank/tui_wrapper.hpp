@@ -40,6 +40,11 @@ public:
     auto clear_selection() -> void;
     auto get_selected_indices() const -> std::vector<size_t>;
 
+    // Highlight management (for arrow key navigation)
+    auto move_highlight(int offset) -> void;
+    auto get_highlighted_index() const -> size_t;
+    auto set_highlighted_index(size_t index) -> void;
+
     // Game flow
     auto is_game_over() const -> bool;
     auto get_winner() const -> std::optional<std::string>;
@@ -55,6 +60,7 @@ private:
     // TUI-specific state
     std::vector<bool> card_selection_;
     bool game_started_;
+    size_t highlighted_index_;  // Currently highlighted card for navigation
 
     // Helper methods
     void update_selection_size();
