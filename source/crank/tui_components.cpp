@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -142,7 +143,7 @@ auto TUIComponents::render_game_screen(const TUIGameWrapper& game)
                           ftxui::separator(),
                           render_stack_display(stack),
                           ftxui::separator(),
-                          render_hand_display(hand, selected_indices, game.get_highlighted_index()),
+                          render_hand_display(hand, selected_indices, game.get_highlighted_index(), valid_plays),
                           ftxui::separator(),
                           render_valid_moves(valid_plays),
                           ftxui::separator(),
@@ -184,7 +185,8 @@ auto TUIComponents::render_stack_display(const std::vector<Card>& stack)
 
   // Render all cards in the stack (including the base 9♥)
   for (const auto& card : stack) {
-    card_elements.push_back(render_card(card, false));
+    // Stack cards are always "valid" in context - they're already played
+    card_elements.push_back(render_card(card, false, true));
   }
 
   return ftxui::hbox(card_elements);
@@ -192,11 +194,20 @@ auto TUIComponents::render_stack_display(const std::vector<Card>& stack)
 
 auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
                                         const std::vector<size_t>& selected,
-                                        size_t highlighted_index)
+                                        size_t highlighted_index,
+                                        const std::vector<Play>& valid_plays)
     -> ftxui::Element
 {
   if (hand.empty()) {
     return ftxui::text("Hand: empty");
+  }
+
+  // Build a set of cards that are valid moves (single card plays only for hand display)
+  std::set<Card> valid_single_cards;
+  for (const auto& play : valid_plays) {
+    if (play.cards.size() == 1) {
+      valid_single_cards.insert(play.cards[0]);
+    }
   }
 
   std::vector<ftxui::Element> card_elements;
@@ -205,7 +216,8 @@ auto TUIComponents::render_hand_display(const std::vector<Card>& hand,
     bool isSelected =
         std::find(selected.begin(), selected.end(), i) != selected.end();
     bool isHighlighted = (i == highlighted_index);
-    auto card_elem = render_card(hand[i], isSelected);
+    bool is_valid_move = valid_single_cards.contains(hand[i]);
+    auto card_elem = render_card(hand[i], isSelected, is_valid_move);
 
     // Add visual indicator for highlighted card
     if (isHighlighted) {
@@ -250,13 +262,13 @@ auto TUIComponents::render_valid_moves(const std::vector<Play>& valid_plays)
 
     const auto& cards = valid_plays[i].cards;
     if (cards.size() == 1) {
-      // Single card - just render it
-      move_elements.push_back(render_card(cards[0], false));
+      // Single card - just render it (always valid since it's in valid_plays)
+      move_elements.push_back(render_card(cards[0], false, true));
     } else {
-      // Multiple cards - show count with card
+      // Multiple cards - show count with card (always valid since it's in valid_plays)
       std::string count_text = std::to_string(cards.size()) + "x";
       move_elements.push_back(ftxui::text(count_text));
-      move_elements.push_back(render_card(cards[0], false));
+      move_elements.push_back(render_card(cards[0], false, true));
     }
   }
 
@@ -277,17 +289,23 @@ auto TUIComponents::render_controls() -> ftxui::Element
   });
 }
 
-auto TUIComponents::render_card(const Card& card, bool selected)
+auto TUIComponents::render_card(const Card& card, bool selected, bool is_valid_move)
     -> ftxui::Element
 {
   std::string card_text = "[" + get_rank_display(card.rank())
       + TUIComponents::get_card_symbol(card.suit()) + "]";
 
+  auto element = ftxui::text(card_text);
+
   if (selected) {
-    return ftxui::text(card_text) | ftxui::bgcolor(ftxui::Color::GrayDark);
+    element = element | ftxui::bgcolor(ftxui::Color::GrayDark);
   }
 
-  return ftxui::text(card_text);
+  if (!is_valid_move) {
+    element = element | ftxui::color(ftxui::Color::Red);
+  }
+
+  return element;
 }
 
 auto TUIComponents::get_card_symbol(Suit suit) -> std::string

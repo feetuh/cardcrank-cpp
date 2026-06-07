@@ -35,14 +35,16 @@ private:
       -> ftxui::Element;
   static auto render_hand_display(const std::vector<Card>& hand,
                                   const std::vector<size_t>& selected,
-                                  size_t highlighted_index)
+                                  size_t highlighted_index,
+                                  const std::vector<Play>& valid_plays)
       -> ftxui::Element;
   static auto render_valid_moves(const std::vector<Play>& valid_plays)
       -> ftxui::Element;
   static auto render_controls() -> ftxui::Element;
 
   // Card rendering helpers
-  static auto render_card(const Card& card, bool selected) -> ftxui::Element;
+  static auto render_card(const Card& card, bool selected, bool is_valid_move)
+      -> ftxui::Element;
   static auto get_card_symbol(Suit suit) -> std::string;
   static auto get_rank_display(Rank rank) -> std::string;
 };
